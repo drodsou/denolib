@@ -24,7 +24,7 @@ type MdProcessed = {
  *   'att:' replaces variable with varible content, and adds it to 'attachments';
  */
 export default async function readMdFile 
-  (file:string, summaryOnly?: boolean) : Promise<MdProcessed>
+  (file:string, summaryOnly?: boolean, props:any ) : Promise<MdProcessed>
 {
 
   let parts = mdParts(Deno.readTextFileSync(file));
@@ -48,12 +48,20 @@ export default async function readMdFile
       Deno.exit(1);
     }
 
+    // -- props variable
+    if (v.type === 'props') {
+      let res = {...props, ...parts.frontmatter}
+      parts.content = parts.content.replace(new RegExp(k,'g'), res[v.content]);
+      continue;
+    }
+
+
     // -- absolutize paths
+    
     let varFileAbs = path.isAbsolute(v.content) 
       ? v.content
       : slashJoin( path.resolve(path.dirname(file)), v.content);
     
-
     try {
       Deno.statSync(varFileAbs)
     } catch (e) {
@@ -68,11 +76,11 @@ export default async function readMdFile
       let res: string = await resMod.default({});
       parts.content = parts.content.replace(new RegExp(k,'g'), res);
     }
-    else if (v.type === 'inc') {
+    else if (v.type === 'include') {
         let res = Deno.readTextFileSync(varFileAbs);
         parts.content = parts.content.replace(new RegExp(k,'g'), res);
     }
-    else if (v.type === 'att') {
+    else if (v.type === 'attach') {
       mdProcessed.attachments.push({absFile: varFileAbs, relFile:v.content});
       parts.content = parts.content.replace(new RegExp(k,'g'), v.content);
     }
