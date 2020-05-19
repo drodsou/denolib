@@ -42,6 +42,12 @@ export default async function readMdFile
 
   // -- process content variables
   for (let [k,v] of Object.entries(parts.variables)) {
+    if (!['run','include','attach','props'].includes(v.type) ) {
+      console.log(colorRed(`Unknown variable type '${v.type}'`));
+      console.log(colorRed(`in markdown file '${file}'`));
+      Deno.exit(1);
+    }
+
     // -- absolutize paths
     let varFileAbs = path.isAbsolute(v.content) 
       ? v.content
