@@ -1,0 +1,11 @@
+{
+  "search.exclude": {
+    "**/.git": true,
+  },
+  //"liveServer.settings.root": "/dist/",
+
+  // -- axetroy vscode deno extension
+  "deno.enable": true,
+  "deno.unstable": true,
+  //"deno.import_map" : "deno_importmap.json"
+}
