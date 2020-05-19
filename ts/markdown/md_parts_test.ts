@@ -30,7 +30,7 @@ let result = mdParts(input);
 // console.log(expected);
 // console.log(result);
 
-Deno.test('mdparts',()=>{
+Deno.test('mdparts:1',()=>{
   if ( JSON.stringify(result) !== JSON.stringify(expected)) throw new Error('Test failed');
 });
 

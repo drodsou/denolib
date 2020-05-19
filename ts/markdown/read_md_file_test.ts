@@ -66,11 +66,11 @@ const expected = {
       '<p><a src="att.pdf">Download this file</a></p>\n',
     attachments: [
       {
-        absFile: __dirname + '/test/image.jpg',
+        absFile: __dirname + '/testdata/image.jpg',
         relFile: 'image.jpg'
       },
       {
-        absFile: __dirname + '/test/att.pdf',
+        absFile: __dirname + '/testdata/att.pdf',
         relFile: 'att.pdf'
       }
     ]
@@ -87,23 +87,23 @@ const expected = {
 }
 
 
-Deno.test('one', async ()=>{
-  let result = await readMdFile(__dirname + '/test/example1.md');
+Deno.test('read_md_file:1:ex1', async ()=>{
+  let result = await readMdFile(__dirname + '/testdata/example1.md');
   if (JSON.stringify(expected['one']) !== JSON.stringify(result)) {
     throw new Error();
   }
 });
 
 
-Deno.test('two', async ()=>{
-  let result = await readMdFile( __dirname  + '/test/example2.md');
+Deno.test('read_md_file:2:ex2', async ()=>{
+  let result = await readMdFile( __dirname  + '/testdata/example2.md');
   if (JSON.stringify(expected['two']) !== JSON.stringify(result)) {
     throw new Error();
   }
 });
 
-Deno.test('two-summary', async ()=>{
-  let result = await readMdFile( __dirname  + '/test/example2.md', true);
+Deno.test('read_md_file:3:ex2-summary', async ()=>{
+  let result = await readMdFile( __dirname  + '/testdata/example2.md', true);
   if (JSON.stringify(expected['two-summary']) !== JSON.stringify(result)) {
     throw new Error();
   }
