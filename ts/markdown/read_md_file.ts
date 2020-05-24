@@ -24,7 +24,7 @@ type MdProcessed = {
  *   'att:' replaces variable with varible content, and adds it to 'attachments';
  */
 export default async function readMdFile 
-  (file:string, summaryOnly?: boolean, props:any ) : Promise<MdProcessed>
+  (file:string, summaryOnly?: boolean, props?:any ) : Promise<MdProcessed>
 {
 
   let parts = mdParts(Deno.readTextFileSync(file));
