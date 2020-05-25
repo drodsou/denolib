@@ -11,7 +11,7 @@ function slashPath (s:string) : string {
 export function copyDirSyncFilter (
   src: string, 
   dest: string, 
-  filter?: (walkEntry:WalkEntry)=>boolean
+  filter = (walkEntry:WalkEntry)=>true
   // options: CopyOptions = {},   // TODO use std/fs/copy.ts : copyFileSync instead of plain Deno.copyFileSync
 ): void 
 {
