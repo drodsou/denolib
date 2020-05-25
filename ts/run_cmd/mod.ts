@@ -8,11 +8,15 @@ export async function runCmd (cmd:string, captureOutput=true) {
   });
   
   let status = await proc.status();
-  let rawOutput = await proc.output()
-  let rawStderrOutput = await proc.stderrOutput();
+  let output = '';
+  
+  if (captureOutput) {
+    let rawOutput = await proc.output()
+    let rawStderrOutput = await proc.stderrOutput();
 
-  let output = new TextDecoder().decode(rawOutput);
-  output += '\n' + new TextDecoder().decode(rawStderrOutput);
+    output = new TextDecoder().decode(rawOutput);
+    output += '\n' + new TextDecoder().decode(rawStderrOutput);
+  }
   
   proc.close();
   
