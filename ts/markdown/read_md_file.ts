@@ -79,7 +79,6 @@ export default async function readMdFile (
       let refUrl = props.refs[refNumber].url + refPath;
       refDesc = refDesc || props.refs[refNumber].desc
 
-      // book or web style
       let refOutput = refUrl === "undefined"
         ? refDesc
         : `<a href="${refUrl}" target="_blank" rel="noopener noreferrer">${refDesc}</a>`;
@@ -93,7 +92,7 @@ export default async function readMdFile (
     }
 
 
-    // -- absolutize paths
+    // -- absolutize paths (variables that deal with files bellow)
     
     let varFileAbs = path.isAbsolute(vObj.content) 
       ? vObj.content

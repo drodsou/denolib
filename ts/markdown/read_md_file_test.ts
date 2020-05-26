@@ -96,11 +96,18 @@ const expected = {
   },
 
   // -- test
-
   'two-summary': {
     frontmatter: { title: 'the title', date: '1900-01-15' },
     content: '',
     html: '',
+    attachments: []
+  },
+
+  // -- test
+  'three': {
+    frontmatter: { title: 'the title', date: '1900-01-15' },
+    content: "\n\ntitle: the title\n\nlang: es",
+    html: "<p>title: the title</p>\n<p>lang: es</p>\n",
     attachments: []
   }
 }
@@ -135,9 +142,9 @@ Deno.test('read_md_file:ex2-summary', async ()=>{
   }
 });
 
-
-
-
-
-
-
+Deno.test('read_md_file:ex3', async ()=>{
+  let result = await readMdFile(__dirname + '/testdata/example3.md', false, {lang:'es'} );
+  if (JSON.stringify(expected['three']) !== JSON.stringify(result)) {
+    throw new Error();
+  }
+});
