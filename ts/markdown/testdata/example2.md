@@ -3,7 +3,7 @@ title: the title
 date: 1900-01-15
 ---
 
-<img src="{{att:image.jpg}}" alt="alt text">
+<img src="{{attach:image.jpg}}" alt="alt text">
 
 Some intro with a subrepticious --- over here
 
@@ -12,7 +12,7 @@ Some intro with a subrepticious --- over here
 text of first point
 
 ```js
-{{inc:inc.js}}
+{{include:inc.js}}
 ```
 
 ## second point
@@ -25,7 +25,7 @@ The winer number today has been:
 
 ## third point
 
-<a src="{{att:att.pdf}}">Download this file</a>
+<a src="{{attach:att.pdf}}">Download this file</a>
 
 
 

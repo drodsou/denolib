@@ -1,6 +1,8 @@
 
-Simple as it is
+In {{ref:sagan-pale}} p.54
 
-## first point
+As {{ref:CarlSagan#UFOs,Sagan}} said
 
-text of first point
+## second point
+
+point two

@@ -2,15 +2,34 @@
 import readMdFile from './read_md_file.ts';
 let __dirname = import.meta.url.split('/').slice(3,-1).join('/');
 
+let refs = [
+  {
+    code: 'sagan-pale',
+    desc: 'Pale blue dot',
+  },
+  {
+    code: 'CarlSagan',
+    desc: 'Carl Sagan',
+    url: 'https://en.wikipedia.org/wiki/Carl_Sagan'
+  }
+]
+
+
 const expected = {
   
   // -- test 
   'one': {
     frontmatter: {},
-    content: '\nSimple as it is\n\n## first point\n\ntext of first point\n',
-    html: '<p>Simple as it is</p>\n' +
-      '<h2 id="first-point">first point</h2>\n' +
-      '<p>text of first point</p>\n',
+    content: "\nIn Pale blue dot p.54\n\nAs <a href=\"https://en.wikipedia.org/wiki/Carl_Sagan#UFOs\" target=\"_blank\" rel=\"noopener noreferrer\">Sagan</a> said\n\n## second point\n\npoint two\n",
+    html: "<p>In Pale blue dot p.54</p>\n<p>As <a href=\"https://en.wikipedia.org/wiki/Carl_Sagan#UFOs\" target=\"_blank\" rel=\"noopener noreferrer\">Sagan</a> said</p>\n<h2 id=\"second-point\">second point</h2>\n<p>point two</p>\n",
+    attachments: []
+  },
+
+  // -- test 
+  'one-book': {
+    frontmatter: {},
+    content: "\nIn Pale blue dot [0] p.54\n\nAs <a href=\"https://en.wikipedia.org/wiki/Carl_Sagan#UFOs\" target=\"_blank\" rel=\"noopener noreferrer\">Sagan</a> [1] said\n\n## second point\n\npoint two\n",
+    html: "<p>In Pale blue dot [0] p.54</p>\n<p>As <a href=\"https://en.wikipedia.org/wiki/Carl_Sagan#UFOs\" target=\"_blank\" rel=\"noopener noreferrer\">Sagan</a> [1] said</p>\n<h2 id=\"second-point\">second point</h2>\n<p>point two</p>\n",
     attachments: []
   },
 
@@ -87,22 +106,29 @@ const expected = {
 }
 
 
-Deno.test('read_md_file:1:ex1', async ()=>{
-  let result = await readMdFile(__dirname + '/testdata/example1.md');
+Deno.test('read_md_file:ex1', async ()=>{
+  let result = await readMdFile(__dirname + '/testdata/example1.md', false, {refs} );
   if (JSON.stringify(expected['one']) !== JSON.stringify(result)) {
     throw new Error();
   }
 });
 
+Deno.test('read_md_file:ex1-refnumber', async ()=>{
+  let result = await readMdFile(__dirname + '/testdata/example1.md', false, {refs, refsNumbers:true} );
+  if (JSON.stringify(expected['one-book']) !== JSON.stringify(result)) {
+    throw new Error();
+  }
+});
 
-Deno.test('read_md_file:2:ex2', async ()=>{
+
+Deno.test('read_md_file:ex2', async ()=>{
   let result = await readMdFile( __dirname  + '/testdata/example2.md');
   if (JSON.stringify(expected['two']) !== JSON.stringify(result)) {
     throw new Error();
   }
 });
 
-Deno.test('read_md_file:3:ex2-summary', async ()=>{
+Deno.test('read_md_file:ex2-summary', async ()=>{
   let result = await readMdFile( __dirname  + '/testdata/example2.md', true);
   if (JSON.stringify(expected['two-summary']) !== JSON.stringify(result)) {
     throw new Error();

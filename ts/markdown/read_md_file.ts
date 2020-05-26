@@ -18,15 +18,22 @@ type MdProcessed = {
 
 /**
  * ASYNC: Reads md file, gets parts and  (if !summaryOnly) also process variables, adds derived html from content.
- * Variables recognized: 
- *   'run:' executes .js script and replaces variable with result;
- *   'inc:' replaces variable with content of file;
- *   'att:' replaces variable with varible content, and adds it to 'attachments';
+ * Variables recognized:
+ * - run: inserts result of script fil
+ * - include: inserts content of file
+ * - attach: mark file as dependency eg:  
+ *   - <img src="{{attach:_data/img.jpg">
+ *   - <a href="{{attach:_data/file.pdf">
+ * - props: frontmatter field + arbitrary props object 
+ * - ref: predefined reference (bibliographica, character, url), code must exist in props.cites  
+ *   - {{cite:sagan1994/home,Pale blue dot}} optional specifying extra url parts if cite has a .url, and also optional custom text description overriding default ref description
  */
-export default async function readMdFile 
-  (file:string, summaryOnly?: boolean, props?:any ) : Promise<MdProcessed>
+export default async function readMdFile (
+  file:string, 
+  summaryOnly:boolean = false, 
+  props:any = {} 
+) : Promise<MdProcessed>
 {
-
   let parts = mdParts(Deno.readTextFileSync(file));
   let mdProcessed: MdProcessed = {
     frontmatter: parts.frontmatter,
@@ -40,27 +47,57 @@ export default async function readMdFile
     return mdProcessed;
   }
 
-  // -- process content variables
-  for (let [k,v] of Object.entries(parts.variables)) {
-    if (!['run','include','attach','props'].includes(v.type) ) {
-      console.log(colorRed(`Unknown variable type '${v.type}'`));
+  // -- process content variables (documentation above)
+  for (let [vText,vObj] of Object.entries(parts.variables)) {
+    if (!['run','include','attach','props','ref'].includes(vObj.type) ) {
+      console.log(colorRed(`Unknown variable type '${vObj.type}'`));
       console.log(colorRed(`in markdown file '${file}'`));
       Deno.exit(1);
     }
 
     // -- props variable
-    if (v.type === 'props') {
+    if (vObj.type === 'props') {
       let res = {...props, ...parts.frontmatter}
-      parts.content = parts.content.replace(new RegExp(k,'g'), res[v.content]);
+      parts.content = parts.content.replace(new RegExp(vText,'g'), res[vObj.content]);
+      continue;
+    }
+
+     // -- ref variable
+     // -- props.refs = [{code, desc, url,  type, isbn, author, edicion...}, ... ]
+     if (vObj.type === 'ref') {
+      //let [_, refCode, refPath, refDesc] = vObj.content.match(/([^\/,]+)(\/[^,]+)?[,]?(.*)/);
+      let [refCodePath, refDesc] = vObj.content.split(',');
+      let [_, refCode, refPath] = refCodePath.match(/([^\/#]+)(.*)/) || [];
+
+      let refNumber = (props.refs||[]).findIndex( (e:any)=>e.code === refCode );
+      if (refNumber === -1) {
+        console.log(colorRed(`Cannot find reference '${refCode}'`));
+        console.log(colorRed(`in markdown file '${file}'`));
+        Deno.exit(1);
+      }
+      
+      let refUrl = props.refs[refNumber].url + refPath;
+      refDesc = refDesc || props.refs[refNumber].desc
+
+      // book or web style
+      let refOutput = refUrl === "undefined"
+        ? refDesc
+        : `<a href="${refUrl}" target="_blank" rel="noopener noreferrer">${refDesc}</a>`;
+      
+      if (props.refsNumbers) {
+        refOutput += ` [${refNumber}]`
+      }
+
+      parts.content = parts.content.replace(new RegExp(vText,'g'), refOutput);
       continue;
     }
 
 
     // -- absolutize paths
     
-    let varFileAbs = path.isAbsolute(v.content) 
-      ? v.content
-      : slashJoin( path.resolve(path.dirname(file)), v.content);
+    let varFileAbs = path.isAbsolute(vObj.content) 
+      ? vObj.content
+      : slashJoin( path.resolve(path.dirname(file)), vObj.content);
     
     try {
       Deno.statSync(varFileAbs)
@@ -71,18 +108,18 @@ export default async function readMdFile
     }
 
     // -- var types
-    if (v.type === 'run') {
+    if (vObj.type === 'run') {
       let resMod = await import(varFileAbs.replace(/^[a-zA-Z]:/,''));  // remove C: if exists, deno import bug
       let res: string = await resMod.default({});
-      parts.content = parts.content.replace(new RegExp(k,'g'), res);
+      parts.content = parts.content.replace(new RegExp(vText,'g'), res);
     }
-    else if (v.type === 'include') {
+    else if (vObj.type === 'include') {
         let res = Deno.readTextFileSync(varFileAbs);
-        parts.content = parts.content.replace(new RegExp(k,'g'), res);
+        parts.content = parts.content.replace(new RegExp(vText,'g'), res);
     }
-    else if (v.type === 'attach') {
-      mdProcessed.attachments.push({absFile: varFileAbs, relFile:v.content});
-      parts.content = parts.content.replace(new RegExp(k,'g'), v.content);
+    else if (vObj.type === 'attach') {
+      mdProcessed.attachments.push({absFile: varFileAbs, relFile:vObj.content});
+      parts.content = parts.content.replace(new RegExp(vText,'g'), vObj.content);
     }
   }  // for content variables
   mdProcessed.content = parts.content;
