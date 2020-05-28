@@ -19,10 +19,14 @@
     for await (const event of watcher) {
       // { kind: "create", paths: [ "/foo.txt" ] }
       
+      let excludedOnly = true;
       // -- add affected watched dirs to eventDirs list
       for (let eventPath of event.paths) { 
-        if (exclude.some(ex=>eventPath.includes(ex))) { continue }
-
+        if (exclude.some(ex=>slashJoin(eventPath).includes(ex))) { 
+          //console.log('excluded', slashJoin(eventPath));
+          continue;
+        }
+        excludedOnly = false;
         for (let dir of dirs) {
           if (slashJoin(eventPath).includes(slashJoin(dir))) {
 
@@ -40,10 +44,12 @@
 
       // -- lauch callback function inf x ms if no other event happens before
       if (timer) { clearTimeout(timer); }
-      timer = setTimeout(()=>{
-        fn({...eventDirs});
-        eventDirs = {};
-      }, options.throttle);
+      if (!excludedOnly) {
+        timer = setTimeout(()=>{
+          fn({...eventDirs});
+          eventDirs = {};
+        }, options.throttle);
+      }
     }
 
   };

@@ -108,7 +108,7 @@ export default async function readMdFile (
 
     // -- var types
     if (vObj.type === 'run') {
-      let resMod = await import(varFileAbs.replace(/^[a-zA-Z]:/,''));  // remove C: if exists, deno import bug
+      let resMod = await import('file://' + varFileAbs);
       let res: string = await resMod.default({});
       parts.content = parts.content.replace(new RegExp(vText,'g'), res);
     }
