@@ -1,1 +1,0 @@
-document.querySelectorAll('nav > ul > li').forEach(e=>e.addEventListener('click',e=>e.currentTarget.classList.toggle('expanded')))
