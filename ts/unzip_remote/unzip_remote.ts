@@ -1,13 +1,13 @@
-import {runCmd} from 'https://raw.githubusercontent.com/drodsou/denolib/master/ts/run_cmd/mod.ts';
-
-import {copyDirSyncFilter} from 'https://raw.githubusercontent.com/drodsou/denolib/master/ts/copy_dir_sync_filter/mod.ts';
-// import {copyDirSyncFilter} from '../denolib/ts/copy_dir_sync_filter/mod.ts';
+import {runCmd} from '../run_cmd/mod.ts';
+import {copyDirSyncFilter} from '../copy_dir_sync_filter/mod.ts';
 
 import * as path from "https://deno.land/std/path/mod.ts";
 import {ensureDirSync} from 'https://deno.land/std/fs/ensure_dir.ts';
 
+let errFmt = (str:string)=>'\n\n' + '-'.repeat(30) + '\n' + str + '\n' + '-'.repeat(30) + '\n';
 
 /** unzips remote (or local) zip file in destDir, optionally unziping only zipSubdir
+ *   example: deno run -A unzip_remote.ts https://github.com/drodsou/mdbookgen/archive/master.zip testdata mdbookgen-master/example-book
 */
 export async function unzipRemote (
   zipUrl:string, destDir:string, zipSubdir:string=''
@@ -16,12 +16,12 @@ export async function unzipRemote (
   const isWindows = !!Deno.env.get('WINDIR');
 
   // -- destDir
-  let destDirAbsolute = path.isAbsolute ? destDir : path.join(Deno.cwd(), destDir);
+  let destDirAbsolute = path.isAbsolute(destDir) ? destDir : path.join(Deno.cwd(), destDir);
 
   ensureDirSync(destDirAbsolute);
   
   if ([...Deno.readDirSync(destDir)].length !== 0) {
-    throw new Error(`ERROR: Destination Dir must be empty: ${destDirAbsolute}`);
+    throw new Error(errFmt(`ERROR: Destination directory must be empty: ${destDirAbsolute}`));
   };
 
   // -- create tmpDir ?
@@ -57,12 +57,19 @@ export async function unzipRemote (
     unzipResult = await runCmd (`unzip ${zipFile} -d ${unzipDir}`)
   }
   if (!unzipResult.success) {
-    throw new Error(`ERROR unzipping: ${unzipResult.output}`);
+    throw new Error(errFmt(`ERROR unzipping: ${unzipResult.output}`));
   }
 
   // -- copy subdir ?
   if (zipSubdir) {
-    console.log('copying subfolder' );
+    let zipSubdirAbsolute = path.join(tmpDir, zipSubdir)
+    // console.log('copying subfolder',zipSubdirAbsolute, destDirAbsolute  );
+    console.log('copying zip subfolder',zipSubdir, 'to', destDirAbsolute );
+    let zipSubdirExists = (await Deno.stat(zipSubdirAbsolute).catch(e=>e)).isDirectory;
+    if (!zipSubdirExists) {
+      Deno.removeSync(tmpDir, { recursive: true });
+      throw new Error(errFmt(`ERROR: Directory '${zipSubdir}' does not exist in zip file.`));
+    }
     copyDirSyncFilter(path.join(tmpDir, zipSubdir), destDirAbsolute);
   }
 
@@ -74,4 +81,20 @@ export async function unzipRemote (
 
   console.log('done');
 
+}
+
+
+// -- MAIN
+if (import.meta.main) {
+  let help = `unzip_remote zipUrl destDir [zipSubdir] `;
+
+  if (Deno.args[0] === '--help') { 
+    console.log(help);
+  }
+
+  let [zipUrl, destDir, zipSubdir] = Deno.args;
+  if (!zipUrl || !destDir) {
+    console.log(`ERROR: Mandatory zipUrl and destDir\n\n${help}`);
+  }
+  await unzipRemote(zipUrl, destDir, zipSubdir);
 }

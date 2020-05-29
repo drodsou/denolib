@@ -19,11 +19,11 @@ export function copyDirSyncFilter (
   let slashSrc = slashPath(src);
   let slashDest = slashPath(dest);
 
-  for (let walkEntry of walkSync(src)) {
+  for (let walkEntry of walkSync(slashSrc)) {
     walkEntry.path = slashPath(walkEntry.path);
     if (filter && !filter(walkEntry)) { continue }
 
-    let destPath = walkEntry.path.replace(src, dest);
+    let destPath = walkEntry.path.replace(slashSrc, slashDest);
     if (walkEntry.isDirectory) {
       //console.log('create', destPath)
       ensureDirSync(destPath);
