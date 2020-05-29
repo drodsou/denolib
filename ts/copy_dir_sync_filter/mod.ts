@@ -8,6 +8,7 @@ function slashPath (s:string) : string {
   return s.replace(/[\/\\]+/g,'/')
 }
 
+/** copies everithing under src/ folder to dest/ */
 export function copyDirSyncFilter (
   src: string, 
   dest: string, 
