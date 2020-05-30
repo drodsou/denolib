@@ -10,9 +10,9 @@ export async function curlyTransformRun (
   let textTransformed = text;
   for (let curlyVar of getCurlyVars(text, 'run')) {
     let absFile = getAbsoluteFile(curlyVar.content, parentFile);
-    let absFileMod = await import('file://' + absFile);
-      let absFileResult: string = await absFileMod.default(props);
-      textTransformed = textTransformed.replace(new RegExp(curlyVar.text,'g'), absFileResult);
+    let absFileMod = await import('file://' + absFile + '?' + Math.random());
+    let absFileResult: string = await absFileMod.default(props);
+    textTransformed = textTransformed.replace(new RegExp(curlyVar.text,'g'), absFileResult);
   };
 
   return {
