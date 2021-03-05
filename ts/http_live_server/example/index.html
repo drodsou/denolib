@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <h1>index: <span id="urlsearch"></span></h1>
+  <a href="/">/</a>
+  <a href="sub">sub</a>
+  <a href="sub/">sub/</a>
+  <a href="sub/index.html">sub/index.html</a>
+  <a href="sub/other.html">sub/other.html</a>
+</body>
+<script>
+  let l = window.location.href
+    .replace(/http[s]?:\/\//,'')
+    .replace(window.location.host,'');
+  document.querySelector("#urlsearch")
+    .innerHTML = l;
+</script>
+</html>
