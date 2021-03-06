@@ -3,7 +3,7 @@ import {httpLiveServerStart, httpLiveServerReload} from './mod.js'
 setInterval(()=>{
   console.log('-- recarjando');
   httpLiveServerReload("recarjando!");
-},500);
+},1000);
 await httpLiveServerStart({path:'example', spa:false});
 
 // // -- test 1

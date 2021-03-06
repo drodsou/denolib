@@ -1,84 +1,57 @@
 // Derived from: https://www.digitalocean.com/community/tutorials/nodejs-server-sent-events-build-realtime-app
 // and: https://github.com/oakserver/oak/blob/main/server_sent_event.ts
 
-export const sseClients = {all:[]};
+export const sseClients = {};
 
 // as php does
 let count = 1;
 let msg1 = "The server time is: Fri, 05 Mar 2021 23:11:54 +0100";
 let payload = (msg)=>`HTTP/1.1 200 OK
-Date: Fri, 05 Mar 2021 22:11:54 GMT
 Content-Type: text/event-stream;charset=UTF-8
-Transfer-Encoding: chunked
 Connection: keep-alive
 Cache-Control: no-cache
-Vary: Accept-Encoding
-Age: 0
-Server: HTTPd
-Accept-Ranges: bytes
-
-3b
 data: ${msg}
 
+`; // \n\n after msg, important
 
-0
-
-`;
+// can test this with: curl -H Accept:text/event-stream http://localhost:8000/_sse
 
 async function respondWithoutClosing(req, payload){
   const encoder = new TextEncoder();
-  await req.w.write(encoder.encode(payload));
-  //await req.w.flush();
+  try {
+    await req.w.write(encoder.encode(payload));
+    await req.w.flush();
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 export async function sseHandleSubscription (req) {
-  // Mandatory headers and http status to keep connection open
-  const headers = new Headers();
-
-
-
-
-  // let firstPayload = [
-  //   "HTTP/1.1 200 OK",
-  //   "Content-Type: text/event-stream",
-  //   "Connection: keep-alive",
-  //   "Cache-Control: no-cache",
-  //   `Keep-Alive: timeout=${Number.MAX_SAFE_INTEGER}`,
-  //   `{"data":"sse ok"}`,
-  // ].join('\n');
-
-  // req.respond closes connection
-  // respondWithoutClosing(req, payload(msg1));
-  respondWithoutClosing(req, payload(String(count++)));
-  
-
   // Generate an id based on timestamp and save res
   // object of client connection on clients list
   // Later we'll iterate it and send updates to each client
-
-  const clientId = Date.now();
-  const newClient = {
-    id: clientId,
-    req
-  };
-  sseClients.all.push(newClient);
+  let clientId = Date.now();
+  sseClients[clientId] = req;
 
   // When client closes connection we update the clients list
   // avoiding the disconnected one
   req.done.then(() => {
-    console.log(`${clientId} Connection closed`);
-    sseClients.all = sseClients.all.filter(c => c.id !== clientId);
+    console.log(`${clientId} SSE connection closed from client`);
+    delete(sseClients[clientId]);
   });
 
 }
 
 
 // Iterate clients list and use write res object method to send new nest
-export function sseSendToAll(data) {
-  sseClients.all.forEach(c => respondWithoutClosing(
-    c.req,
-    payload(String(count++))
-    // `{"data": ${JSON.stringify(data)}}`
-    // `data: ${JSON.stringify(data)}`
-  ));
+export async function sseSendToAll(data) {
+  for (let [clientId, clientReq] of Object.entries(sseClients)) {
+    console.log('...sending to client')
+    let result = await respondWithoutClosing(clientReq, payload(String(count++)));
+    if (!result) {
+      console.log('ERROR sending sse to client, autoclosing from server');
+      delete(sseClients[clientId]);
+    }
+  }
 }
