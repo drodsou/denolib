@@ -112,7 +112,8 @@ function addLiveReload (html) {
   <script>
     var source = new EventSource("/_sse");
     source.onmessage = function(event) {
-      console.log('SSE received:', event.data);
+      window.location.reload();
+      // console.log('SSE received:', event.data);
     };
   </script>
   </body>
