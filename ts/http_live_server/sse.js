@@ -4,17 +4,14 @@
 export const sseClients = {};
 
 // as php does
-let count = 1;
-let msg1 = "The server time is: Fri, 05 Mar 2021 23:11:54 +0100";
-let payload = (msg)=>`HTTP/1.1 200 OK
+
+const createSSEPayload = (data)=>`HTTP/1.1 200 OK
 Content-Type: text/event-stream;charset=UTF-8
 Connection: keep-alive
 Cache-Control: no-cache
-data: ${msg}
+data: ${data}` + '\n\n';
 
-`; // \n\n after msg, important
-
-// can test this with: curl -H Accept:text/event-stream http://localhost:8000/_sse
+// test this with: curl -H Accept:text/event-stream http://localhost:8000/_sse
 
 async function respondWithoutClosing(req, payload){
   const encoder = new TextEncoder();
@@ -34,6 +31,9 @@ export async function sseHandleSubscription (req) {
   let clientId = Date.now();
   sseClients[clientId] = req;
 
+  // need first message, ignored by client, but gets it ready for the real ones
+  sseSendToOne(clientId, `Subscription ACK`);
+
   // When client closes connection we update the clients list
   // avoiding the disconnected one
   req.done.then(() => {
@@ -43,15 +43,18 @@ export async function sseHandleSubscription (req) {
 
 }
 
+export async function sseSendToOne(clientId, data) {
+  console.log(`Sending message to client ${clientId}: ${data}`)
+  let result = await respondWithoutClosing(sseClients[clientId], createSSEPayload(data));
+  if (!result) {
+    console.log('ERROR sending sse to client, autoclosing from server');
+    delete(sseClients[clientId]);
+  }
+}
 
 // Iterate clients list and use write res object method to send new nest
 export async function sseSendToAll(data) {
-  for (let [clientId, clientReq] of Object.entries(sseClients)) {
-    console.log('...sending to client')
-    let result = await respondWithoutClosing(clientReq, payload(String(count++)));
-    if (!result) {
-      console.log('ERROR sending sse to client, autoclosing from server');
-      delete(sseClients[clientId]);
-    }
+  for (let clientId of Object.keys(sseClients)) {
+    sseSendToOne(clientId, data);
   }
 }

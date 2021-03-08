@@ -8,7 +8,7 @@ const defaultOpts = {
   liveReload: true,
   spa: true,
   path: slashJoin(Deno.cwd()),
-  debug: true
+  debug: false
 }
 
 const SSE_URL = '/_sse';
@@ -36,7 +36,7 @@ export async function httpLiveServerStart (userOpts) {
     }
 
     if (req.url === SSE_URL) {
-      logDebug('Subscription to SSE received from browser');
+      //logDebug('Subscription to SSE received from browser');
       sseHandleSubscription(req);
       continue;
     }
@@ -85,7 +85,9 @@ async function sendFile(req, reqPath) {
     if (!lrHtml) {
       logRed(`Could not add liveReload script to ${reqPath}\n The file doesn't have a </body> tag.`);
     } else {
-      res.body = lrHtml
+      let lrHtmlBytes = new TextEncoder().encode(lrHtml);
+      res.body = lrHtmlBytes;
+      res.headers.set('content-length', lrHtmlBytes.length);
     }
   }
 
@@ -108,12 +110,14 @@ function addLiveReload (html) {
   if (!endBodyTag) {
     return false;
   }
+  logDebug('endBodyTag', endBodyTag)
   return html.replace(endBodyTag,`
   <script>
-    var source = new EventSource("/_sse");
+    console.log('autoreload enabled');
+    let source = new EventSource("/_sse");
     source.onmessage = function(event) {
+      console.log('SSE received:', event.data);
       window.location.reload();
-      // console.log('SSE received:', event.data);
     };
   </script>
   </body>

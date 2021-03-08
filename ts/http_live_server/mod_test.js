@@ -1,9 +1,11 @@
 import {httpLiveServerStart, httpLiveServerReload} from './mod.js'
 
+let count=0;
 setInterval(()=>{
-  console.log('-- recarjando');
-  httpLiveServerReload("recarjando!");
-},1000);
+  count++;
+  console.log('sending message', count);
+  httpLiveServerReload(`message ${count}`);
+},2000);
 await httpLiveServerStart({path:'example', spa:false});
 
 // // -- test 1
