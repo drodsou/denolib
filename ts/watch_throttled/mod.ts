@@ -9,7 +9,8 @@
     options.slash = options.slash || true;        // convert path to / even in windows
     
     // -- returned object with affected dirs as keys, and array of paths as values
-    let eventDirs: {[key:string]:Array<Object>} = {};
+    // let eventDirs: {[key:string]:Array<Object>} = {};
+    let eventDirs: {[key:string]:boolean} = {};
 
     // -- common settimeout ref
     let timer: number | undefined;    
@@ -36,17 +37,20 @@
               event.paths = event.paths.map(p=>slashJoin(p));
             }
 
-            if (!eventDirs[dir]) {eventDirs[dir] = [] }
-            eventDirs[dir].push(event);
+            event.paths.forEach(path=>{
+              if (!eventDirs[path]) {eventDirs[path] = true }  
+            })
+            // eventDirs[dir].push(event);
           }
         }
       }
 
       // -- lauch callback function inf x ms if no other event happens before
+      
       if (timer) { clearTimeout(timer); }
       if (!excludedOnly) {
         timer = setTimeout(()=>{
-          fn({...eventDirs});
+          fn(Object.keys(eventDirs));
           eventDirs = {};
         }, options.throttle);
       }
