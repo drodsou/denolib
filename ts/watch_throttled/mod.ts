@@ -10,7 +10,7 @@
     
     // -- returned object with affected dirs as keys, and array of paths as values
     // let eventDirs: {[key:string]:Array<Object>} = {};
-    let eventDirs: {[key:string]:boolean} = {};
+    let eventDirs: {[key:string]:string} = {};
 
     // -- common settimeout ref
     let timer: number | undefined;    
@@ -38,7 +38,7 @@
             }
 
             event.paths.forEach(path=>{
-              if (!eventDirs[path]) {eventDirs[path] = true }  
+              if (!eventDirs[path]) {eventDirs[path] = event.kind }  
             })
             // eventDirs[dir].push(event);
           }
@@ -50,7 +50,12 @@
       if (timer) { clearTimeout(timer); }
       if (!excludedOnly) {
         timer = setTimeout(()=>{
-          fn(Object.keys(eventDirs));
+          const eventDirsArr: {path:string, kind:string}[] = [];
+          Object.keys(eventDirs).forEach(path=>{
+            // kind: modify, remove, create...
+            eventDirsArr.push({path, kind: eventDirs[path]}) 
+          });
+          fn(eventDirsArr);
           eventDirs = {};
         }, options.throttle);
       }
