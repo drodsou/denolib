@@ -15,7 +15,7 @@ const SSE_URL = '/_sse';
 
 let opts
 
-export async function httpLiveServerReload (files) {
+export function httpLiveServerReload (files) {
   sseSendToAll(files)
 }
 
@@ -54,7 +54,7 @@ export async function httpLiveServerStart (userOpts) {
       stat = await pathStat(reqPath);
     }
 
-    let requestingAFile = reqPath.includes('.');
+    const requestingAFile = reqPath.includes('.');
     if (stat === 'not found' && opts.spa && !requestingAFile) {
       logDebug('req not found, but SPA enabled, trying /index.html')
       reqPath = slashJoin(opts.path, '/index.html');
@@ -76,16 +76,16 @@ export async function httpLiveServerStart (userOpts) {
 
 
 async function sendFile(req, reqPath) {
-  let res = await serveFile(req, reqPath);
+  const res = await serveFile(req, reqPath);
   
   if (reqPath.endsWith('.html') && opts.liveReload) {
     const decoder = new TextDecoder('utf-8');
-    let html = decoder.decode(await Deno.readAll(res.body));
-    let lrHtml = addLiveReload(html);
+    const html = decoder.decode(await Deno.readAll(res.body));
+    const lrHtml = addLiveReload(html);
     if (!lrHtml) {
       logRed(`Could not add liveReload script to ${reqPath}\n The file doesn't have a </body> tag.`);
     } else {
-      let lrHtmlBytes = new TextEncoder().encode(lrHtml);
+      const lrHtmlBytes = new TextEncoder().encode(lrHtml);
       res.body = lrHtmlBytes;
       res.headers.set('content-length', lrHtmlBytes.length);
     }

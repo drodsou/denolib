@@ -24,11 +24,11 @@ async function respondWithoutClosing(req, payload){
   }
 }
 
-export async function sseHandleSubscription (req) {
+export function sseHandleSubscription (req) {
   // Generate an id based on timestamp and save res
   // object of client connection on clients list
   // Later we'll iterate it and send updates to each client
-  let clientId = Date.now();
+  const clientId = Date.now();
   sseClients[clientId] = req;
 
   // need first message, ignored by client, but gets it ready for the real ones
@@ -45,7 +45,7 @@ export async function sseHandleSubscription (req) {
 
 export async function sseSendToOne(clientId, data) {
   console.log(`Sending message to client ${clientId}: ${data}`)
-  let result = await respondWithoutClosing(sseClients[clientId], createSSEPayload(data));
+  const result = await respondWithoutClosing(sseClients[clientId], createSSEPayload(data));
   if (!result) {
     console.log('ERROR sending sse to client, autoclosing from server');
     delete(sseClients[clientId]);
@@ -53,8 +53,8 @@ export async function sseSendToOne(clientId, data) {
 }
 
 // Iterate clients list and use write res object method to send new nest
-export async function sseSendToAll(data) {
-  for (let clientId of Object.keys(sseClients)) {
+export function sseSendToAll(data) {
+  for (const clientId of Object.keys(sseClients)) {
     sseSendToOne(clientId, data);
   }
 }
