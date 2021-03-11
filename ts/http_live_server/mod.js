@@ -23,7 +23,7 @@ export async function httpLiveServerStart (userOpts) {
   opts = {...defaultOpts, ...userOpts}
   opts.path =  isAbsPath(opts.path) ? opts.path : slashJoin(Deno.cwd() + '/' + opts.path);
 
-  logGreen(`\nServing path: ${opts.path}`);
+  logGreen(`Serving path: ${opts.path}`);
 
   const server = serve({ port: opts.port });
   logGreen(`Serving url: http://localhost:${opts.port}/`);
