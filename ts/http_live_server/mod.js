@@ -83,7 +83,7 @@ async function sendFile(req, reqPath) {
     const html = decoder.decode(await Deno.readAll(res.body));
     const lrHtml = addLiveReload(html);
     if (!lrHtml) {
-      logRed(`Could not add liveReload script to ${reqPath}\n The file doesn't have a </body> tag.`);
+      logRed(`Could not add liveReload script to ${reqPath}, the file doesn't have a </body> tag.`);
     } else {
       const lrHtmlBytes = new TextEncoder().encode(lrHtml);
       res.body = lrHtmlBytes;
