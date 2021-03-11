@@ -129,15 +129,15 @@ function addLiveReload (html) {
 // -- HELPER GENERIC
 
 function logDebug(...str) {
-  if (opts.debug) console.log(colorYellow(`debug: ${str.join(' ')}`))
+  if (opts.debug) console.log(colorYellow(`HTTP: debug: ${str.join(' ')}`))
 }
 
 function logRed(...str) {
-  console.log(colorRed(str.join(' ')))
+  console.log(colorRed(`HTTP: ${str.join(' ')}`));
 }
 
 function logGreen(...str) {
-  console.log(colorGreen(str.join(' ')))
+  console.log(colorGreen(`HTTP: ${str.join(' ')}`));
 }
 
 
