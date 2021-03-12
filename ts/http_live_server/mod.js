@@ -8,7 +8,8 @@ const defaultOpts = {
   liveReload: true,
   spa: true,
   path: slashJoin(Deno.cwd()),
-  debug: false
+  debug: false,
+  proxy: {route: '/php', server: 'http//:localhost:8002'}
 }
 
 const SSE_URL = '/_sse';
@@ -29,6 +30,13 @@ export async function httpLiveServerStart (userOpts) {
   logGreen(`Serving url: http://localhost:${opts.port}/`);
 
   for await (const req of server) {
+    
+    if (opts.proxy && req.url === opts.proxy.route) {
+      //logDebug('Subscription to SSE received from browser');
+      sseHandleSubscription(req);
+      continue;
+    }
+
     if (req.method !== 'GET') {
       logRed('Request method not allowed', req.method);
       req.respond({status: 405})
@@ -82,13 +90,16 @@ async function sendFile(req, reqPath) {
     const decoder = new TextDecoder('utf-8');
     const html = decoder.decode(await Deno.readAll(res.body));
     const lrHtml = addLiveReload(html);
+    let finalHtml;
     if (!lrHtml) {
       logRed(`Could not add liveReload script to ${reqPath}, the file doesn't have a </body> tag.`);
+      finalHtml = html;
     } else {
-      const lrHtmlBytes = new TextEncoder().encode(lrHtml);
-      res.body = lrHtmlBytes;
-      res.headers.set('content-length', lrHtmlBytes.length);
+      finalHtml = lrHtml;
     }
+    const finalHtmlBytes = new TextEncoder().encode(finalHtml);
+    res.body = finalHtmlBytes;
+    res.headers.set('content-length', finalHtmlBytes.length);
   }
 
   req.respond(res);
@@ -116,8 +127,8 @@ function addLiveReload (html) {
     console.log('autoreload enabled');
     let source = new EventSource("/_sse");
     source.onmessage = function(event) {
-      console.log('SSE received:', event.data);
-      window.location.reload();
+      console.log("SSE received: " + (event.data||'').slice(0,15) + "..." );
+      eval(event.data);
     };
   </script>
   </body>
