@@ -86,7 +86,7 @@ export async function httpLiveServerStart (userOpts) {
 async function sendFile(req, reqPath) {
   const res = await serveFile(req, reqPath);
   
-  if (reqPath.endsWith('.html') && opts.liveReload) {
+  if (opts.liveReload && reqPath.endsWith('.html') ) {
     const decoder = new TextDecoder('utf-8');
     const html = decoder.decode(await Deno.readAll(res.body));
     const lrHtml = addLiveReload(html);
